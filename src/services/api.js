@@ -10,6 +10,15 @@ const api = axios.create({
   },
 });
 
+// Interceptor to attach Authorization Bearer token as fallback for cross-site cookie blocking
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('shopkart_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 /**
  * Register a new customer
  * @param {Object} data - { fullName, email, password, phone }

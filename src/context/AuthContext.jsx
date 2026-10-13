@@ -32,6 +32,9 @@ export const AuthProvider = ({ children }) => {
     setAuthError(null);
     try {
       const data = await loginCustomerApi(credentials);
+      if (data.token) {
+        localStorage.setItem('shopkart_token', data.token);
+      }
       // After login cookie is set, fetch the user profile
       const profile = await getProfileApi();
       setUser(profile);
@@ -62,6 +65,7 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.error('Logout error:', err);
     } finally {
+      localStorage.removeItem('shopkart_token');
       setUser(null);
     }
   };
