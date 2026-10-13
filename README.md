@@ -1,6 +1,15 @@
-# ShopKart — Frontend Authentication Lab (React + Express API)
+# ShopKart — MERN E-Commerce Full-Stack Application
 
-Welcome to the **ShopKart** customer authentication and home flow application. This repository contains the complete frontend (React 18, Vite, React Router DOM, Axios, Tailwind CSS) integrated with the backend customer authentication service.
+Welcome to the **ShopKart** full-stack e-commerce application. This repository contains the complete frontend (React 18, Vite, React Router DOM, Axios, Tailwind CSS) integrated with the backend services (Express, MongoDB Atlas, JWT, Razorpay).
+
+---
+
+## 🌐 Live Deployment Links
+
+- **Live Frontend (Vercel)**: [https://shop-kart-ecru.vercel.app/](https://shop-kart-ecru.vercel.app/)
+- **Live Backend API (Render)**: [https://shopkart-backend-y3uc.onrender.com/](https://shopkart-backend-y3uc.onrender.com/)
+- **Health Check Endpoint**: [https://shopkart-backend-y3uc.onrender.com/health](https://shopkart-backend-y3uc.onrender.com/health)
+- **GitHub Repository**: [https://github.com/AryanMoorthy/ShopKart](https://github.com/AryanMoorthy/ShopKart)
 
 ---
 
