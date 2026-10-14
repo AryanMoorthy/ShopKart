@@ -1,6 +1,6 @@
 # ShopKart — MERN E-Commerce Full-Stack Application
 
-ShopKart is a modern, full-stack e-commerce web application featuring user authentication, product catalog browsing, wishlist management, cart operations, checkout, and order history tracking.
+ShopKart is a modern, full-stack e-commerce web application featuring user authentication, product catalog browsing, wishlist management, cart operations, Razorpay payment gateway integration, and order history tracking.
 
 ---
 
@@ -29,9 +29,15 @@ ShopKart is a modern, full-stack e-commerce web application featuring user authe
 - **Interactive Cart**: Add, remove, and adjust item quantities with live total price calculations.
 - **Wishlist**: Save favorite items to purchase later, synchronized with user accounts.
 
-### 4. Checkout & Order Management
-- **Seamless Checkout**: Address collection and payment method selection.
-- **Order Tracking & History**: View previous orders, status badges, and itemized receipts.
+### 4. Razorpay Payment Gateway & Checkout
+- **Server-Side Price Calculation**: Order amounts and stock checks are calculated securely on the server, preventing client-side tampering.
+- **Razorpay Checkout SDK**: Integration with Razorpay standard checkout popup supporting Cards, UPI, Net Banking, and Wallets.
+- **HMAC SHA-256 Signature Verification**: Server validates payment integrity via cryptographic signature verification (`order_id|payment_id` against key secret) before marking orders as paid.
+- **Fallback Payment Simulator**: Built-in test simulator mode allowing testing of checkout, success callbacks, and order fulfillment without requiring external credentials.
+
+### 5. Order Management & Receipts
+- **Real-Time Order Tracking**: Displays order status (`CONFIRMED`, `PENDING_PAYMENT`, etc.), itemized receipts, and shipping information.
+- **Order History**: Authenticated users can review past purchases with detailed order IDs and Razorpay transaction IDs.
 
 ---
 
@@ -41,11 +47,13 @@ ShopKart is a modern, full-stack e-commerce web application featuring user authe
 - **Framework & Tooling**: [React 18](https://react.dev/), [Vite](https://vitejs.dev/)
 - **Routing**: [React Router DOM v6](https://reactrouter.com/)
 - **State Management & Network**: React Context API, [Axios](https://axios-http.com/) (with `withCredentials: true`)
+- **Payments**: Razorpay Checkout SDK (`checkout.js`)
 - **Styling & UI**: [Tailwind CSS](https://tailwindcss.com/), [Lucide React](https://lucide.dev/)
 
 ### Backend
 - **Runtime & Server**: [Node.js](https://nodejs.org/), [Express.js](https://expressjs.com/)
 - **Database & ODM**: [MongoDB Atlas](https://www.mongodb.com/atlas) / Mongoose
+- **Payments**: Razorpay Node SDK (`razorpay`), Node `crypto` for HMAC SHA-256 verification
 - **Security & Utilities**: JSON Web Tokens (`jsonwebtoken`), `bcryptjs`, `cookie-parser`, `cors`
 
 ---
@@ -61,22 +69,44 @@ ShopKart is a modern, full-stack e-commerce web application featuring user authe
    - Upon page load or route transitions, the frontend queries `/customers/me` to verify active sessions.
    - Global states (User profile, Cart, and Wishlist) are managed via React Context providers (`AuthContext`, `CartContext`, `WishlistContext`).
 
-3. **Data Persistence & API Endpoints**:
-   - Products, carts, wishlists, and orders are persisted in MongoDB collections.
-   - Protected API routes pass through authentication middleware (`auth.middleware.js`) which verifies the JWT before executing business logic.
+3. **Razorpay Checkout & Verification Lifecycle**:
+   - **Order Creation (`POST /orders/create-payment-order`)**: The client submits the shipping address and cart items. The server verifies stock, recalculates the exact total from the database, creates a pending `Order` record, and requests an order ID from the Razorpay API.
+   - **Checkout Execution**: The frontend dynamically loads the Razorpay checkout script and opens the Razorpay payment modal with the backend-issued order details.
+   - **Signature Verification (`POST /orders/verify-payment`)**: After payment completion, Razorpay returns `razorpay_order_id`, `razorpay_payment_id`, and `razorpay_signature`. The backend validates the signature using `crypto.createHmac('sha256', RAZORPAY_KEY_SECRET)`:
+     ```js
+     const expectedSignature = crypto
+       .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+       .update(`${order.razorpayOrderId}|${razorpay_payment_id}`)
+       .digest('hex');
+     ```
+   - **Order Confirmation**: Once the cryptographic signature matches, the backend transitions the order to `CONFIRMED` and `paymentStatus: 'PAID'`, clears the user's cart, and decrements stock.
+
+4. **Data Persistence**:
+   - Products, carts, wishlists, and orders are persisted in MongoDB collections with relationships mapped to authenticated customer IDs.
 
 ---
 
 ## 🏃 Quick Start Guide
 
-### 1. Start the Backend API (Port 5000)
+### 1. Configure Environment Variables
+Create `.env` inside `backend/`:
+```env
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret_key
+RAZORPAY_KEY_ID=your_razorpay_key_id
+RAZORPAY_KEY_SECRET=your_razorpay_key_secret
+FRONTEND_URL=http://localhost:5173
+```
+
+### 2. Start the Backend API (Port 5000)
 ```bash
 cd backend
 npm install
 npm start
 ```
 
-### 2. Start the Frontend Dev Server (Port 5173)
+### 3. Start the Frontend Dev Server (Port 5173)
 ```bash
 cd ..
 npm install
