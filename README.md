@@ -1,6 +1,6 @@
 # ShopKart — MERN E-Commerce Full-Stack Application
 
-Welcome to the **ShopKart** full-stack e-commerce application. This repository contains the complete frontend (React 18, Vite, React Router DOM, Axios, Tailwind CSS) integrated with the backend services (Express, MongoDB Atlas, JWT, Razorpay).
+ShopKart is a modern, full-stack e-commerce web application featuring user authentication, product catalog browsing, wishlist management, cart operations, checkout, and order history tracking.
 
 ---
 
@@ -13,77 +13,57 @@ Welcome to the **ShopKart** full-stack e-commerce application. This repository c
 
 ---
 
-## 🚀 Features & Completed Tasks
+## 🚀 Key Features
 
-### Task 1 — Customer Registration (`/register`) [25 Marks]
-- Controlled form fields: Full Name, Email, Password, and Phone Number.
-- Real-time client-side validation for mandatory fields, valid email format, minimum 6-character password, and phone formatting.
-- Server-side error handling (handles duplicate 409 email conflict, 400 bad request, 500 server errors).
-- Success notification state with automatic redirect to `/login`.
-- Smooth toggle for password visibility and quick navigation link to login.
+### 1. Authentication & Security
+- **User Registration & Login**: Client-side validation for form inputs, password strength, and formatting with server-side validation.
+- **JWT & Secure Cookie Handling**: Token-based authentication using `HttpOnly` cookies to protect against XSS attacks.
+- **Protected Routes**: React Router route guards checking user session status before rendering protected pages.
+- **Account Management**: Ability for authenticated users to view profile details and update passwords securely.
 
-### Task 2 — Customer Login (`/login`) [30 Marks]
-- Controlled form fields: Email and Password.
-- Automatic cookie transmission via Axios `withCredentials: true`.
-- Server-side authentication (`POST /customers/login`) setting a secure `HttpOnly` JWT cookie.
-- Clear error notification displaying "Invalid credentials" upon authentication failure.
-- Auto-redirection to `/home` on successful authentication.
+### 2. Product Catalog & Discovery
+- **Browsing & Filtering**: Explore products with categorization, search, and sorting.
+- **Product Details**: Comprehensive view with descriptions, stock status, ratings, and price breakdowns.
 
-### Task 3 — Protected Home Dashboard (`/home`) [30 Marks]
-- Protected route wrapper checking authentication status via `GET /customers/me`.
-- Automatic redirection to `/login` if unauthenticated or token expires.
-- Displays logged-in customer details:
-  - Welcome banner with customer name
-  - Full Name, Email address, Phone number, and Customer ID
-  - Active customer badge and session status
-- Bonus: Integrated **Change Password** modal calling `PATCH /customers/change-password`.
+### 3. Cart & Wishlist Operations
+- **Interactive Cart**: Add, remove, and adjust item quantities with live total price calculations.
+- **Wishlist**: Save favorite items to purchase later, synchronized with user accounts.
 
-### Task 4 — Logout Flow (`Navbar.jsx`) [15 Marks]
-- Responsive navigation bar with active route highlighting and customer profile badge.
-- Logout button triggering `POST /customers/logout`.
-- Clears the `HttpOnly` cookie on the backend, updates auth state, and redirects user to `/login`.
+### 4. Checkout & Order Management
+- **Seamless Checkout**: Address collection and payment method selection.
+- **Order Tracking & History**: View previous orders, status badges, and itemized receipts.
 
 ---
 
-## 🛠️ Tech Stack & Folder Structure
+## 🛠️ Tech Stack
 
-- **Frontend**: React 18, Vite, React Router DOM v6, Axios, Tailwind CSS, Lucide React Icons.
-- **Backend**: Express.js, MongoDB / MongoMemoryServer, JSON Web Tokens (JWT), Bcrypt.js, Cookie-Parser.
+### Frontend
+- **Framework & Tooling**: [React 18](https://react.dev/), [Vite](https://vitejs.dev/)
+- **Routing**: [React Router DOM v6](https://reactrouter.com/)
+- **State Management & Network**: React Context API, [Axios](https://axios-http.com/) (with `withCredentials: true`)
+- **Styling & UI**: [Tailwind CSS](https://tailwindcss.com/), [Lucide React](https://lucide.dev/)
 
-### Project Structure
-```
-ShopKart/
-├── backend/
-│   ├── config/db.js
-│   ├── controllers/customer.controller.js
-│   ├── middlewares/auth.middleware.js
-│   ├── models/customer.model.js
-│   ├── routes/customer.routes.js
-│   ├── utils/generateToken.js
-│   └── index.js
-│
-├── src/
-│   ├── components/
-│   │   ├── Navbar.jsx
-│   │   └── ProtectedRoute.jsx
-│   ├── context/
-│   │   └── AuthContext.jsx
-│   ├── pages/
-│   │   ├── Home.jsx
-│   │   ├── Login.jsx
-│   │   └── Register.jsx
-│   ├── services/
-│   │   └── api.js
-│   ├── App.jsx
-│   ├── index.css
-│   └── main.jsx
-│
-├── index.html
-├── vite.config.js
-├── tailwind.config.js
-├── postcss.config.js
-└── package.json
-```
+### Backend
+- **Runtime & Server**: [Node.js](https://nodejs.org/), [Express.js](https://expressjs.com/)
+- **Database & ODM**: [MongoDB Atlas](https://www.mongodb.com/atlas) / Mongoose
+- **Security & Utilities**: JSON Web Tokens (`jsonwebtoken`), `bcryptjs`, `cookie-parser`, `cors`
+
+---
+
+## ⚙️ How It Works
+
+1. **Client Request & Authentication Flow**:
+   - The user registers or logs in via the React frontend.
+   - The Express backend validates credentials, hashes passwords with `bcryptjs`, and issues a signed JWT.
+   - The JWT is stored in an `HttpOnly`, `SameSite` secure cookie transmitted automatically via Axios.
+
+2. **Session Verification & State Management**:
+   - Upon page load or route transitions, the frontend queries `/customers/me` to verify active sessions.
+   - Global states (User profile, Cart, and Wishlist) are managed via React Context providers (`AuthContext`, `CartContext`, `WishlistContext`).
+
+3. **Data Persistence & API Endpoints**:
+   - Products, carts, wishlists, and orders are persisted in MongoDB collections.
+   - Protected API routes pass through authentication middleware (`auth.middleware.js`) which verifies the JWT before executing business logic.
 
 ---
 
@@ -98,29 +78,9 @@ npm start
 
 ### 2. Start the Frontend Dev Server (Port 5173)
 ```bash
+cd ..
 npm install
 npm run dev
 ```
 
 Visit **`http://localhost:5173`** in your browser.
-
----
-
-## 📋 TA Viva Questions & Answers
-
-### 1. Why do we use `withCredentials: true`?
-> **Answer**: By default, standard AJAX/Fetch/Axios requests do not send credentials (such as cookies, authorization headers, or TLS certificates) for cross-origin or proxy requests. Setting `withCredentials: true` instructs the browser to attach stored cookies (such as our `token` HttpOnly cookie) to outgoing requests and accept cookies set in response headers.
-
-### 2. Why can't JavaScript read an `HttpOnly` cookie?
-> **Answer**: The `HttpOnly` flag is a browser security mechanism designed to prevent client-side scripts (such as `document.cookie`) from reading or modifying the cookie. This provides vital protection against Cross-Site Scripting (XSS) attacks, preventing malicious scripts from stealing the user's session token.
-
-### 3. Why is `/home` called a protected route?
-> **Answer**: A protected route is a route that strictly requires an active, authenticated session. In our React application, `ProtectedRoute` verifies whether the customer is authenticated by validating the session via `GET /customers/me`. If the user is unauthenticated or the token is missing/expired, the route automatically blocks rendering and redirects the user to `/login`.
-
-### 4. Why do we fetch `/customers/me` instead of storing the user manually in `localStorage`?
-> **Answer**: Relying on `localStorage` to store user profiles can lead to stale, inaccurate, or tampered user data, and does not verify if the server session is actually still valid. Fetching `/customers/me` verifies the `HttpOnly` cookie directly with the backend, ensuring that only currently authorized sessions can fetch live customer details from the database (single source of truth).
-
-### 5. What is the difference between authentication and authorization?
-> **Answer**:
-> - **Authentication (AuthN)**: Verifying **who** a user is (e.g. validating email and password during login, issuing a JWT).
-> - **Authorization (AuthZ)**: Verifying **what** permissions or actions that authenticated user is permitted to perform (e.g. allowing customers to view only their own profile `/customers/me`, or restricting admin capabilities).
